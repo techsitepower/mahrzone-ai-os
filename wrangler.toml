@@ -2,7 +2,7 @@ name = "mahrzone-worker"
 
 main = "worker.js"
 
-compatibility_date = "2026-05-13"
+compatibility_date = "2026-05-12"
 
 [assets]
 directory = "."
