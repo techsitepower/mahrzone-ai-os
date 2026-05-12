@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultimate AI OS</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial;
+}
+
+body{
+background:#0f172a;
+color:white;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+transition:0.3s;
+}
+
+body.light{
+background:#e2e8f0;
+color:black;
+}
+
+.container{
+width:95%;
+max-width:1100px;
+background:#1e293b;
+padding:20px;
+border-radius:20px;
+box-shadow:0 0 30px rgba(0,0,0,0.5);
+}
+
+body.light .container{
+background:white;
+}
+
+h1{
+text-align:center;
+margin-bottom:20px;
+}
+
+.topbar{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+margin-bottom:15px;
+}
+
+select,input,button{
+padding:12px;
+border:none;
+border-radius:10px;
+font-size:15px;
+}
+
+button{
+cursor:pointer;
+}
+
+.chatbox{
+height:450px;
+overflow-y:auto;
+background:#334155;
+padding:15px;
+border-radius:15px;
+margin-bottom:15px;
+}
+
+body.light .chatbox{
+background:#e2e8f0;
+}
+
+.msg{
+padding:12px;
+border-radius:12px;
+margin-bottom:12px;
+line-height:1.5;
+white-space:pre-wrap;
+}
+
+.user{
+background:#2563eb;
+}
+
+.ai{
+background:#475569;
+}
+
+.bottom{
+display:flex;
+gap:10px;
+}
+
+#msg{
+flex:1;
+}
+
+.send{
+background:#3b82f6;
+color:white;
+}
+
+.green{
+background:#22c55e;
+color:white;
+}
+
+.red{
+background:#ef4444;
+color:white;
+}
+
+.purple{
+background:#8b5cf6;
+color:white;
+}
+
+.orange{
+background:#f97316;
+color:white;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🚀 Ultimate AI OS</h1>
+
+<div class="topbar">
+
+<select id="provider">
+<option value="groq">Groq</option>
+<option value="openrouter">OpenRouter</option>
+</select>
+
+<select id="model">
+<option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
+<option value="llama3-8b-8192">Llama 8B</option>
+<option value="mixtral-8x7b-32768">Mixtral</option>
+</select>
+
+<button class="green" onclick="toggleTheme()">Dark/Light</button>
+
+<button class="red" onclick="clearChat()">Clear</button>
+
+<button class="purple" onclick="document.getElementById('fileInput').click()">
+File
+</button>
+
+<button class="orange" onclick="internetSearch()">
+Web
+</button>
+
+<input type="file" id="fileInput" hidden>
+
+</div>
+
+<div class="chatbox" id="chatbox"></div>
+
+<div class="bottom">
+
+<input type="text" id="msg" placeholder="Ask anything...">
+
+<button class="send" onclick="askAI()">Send</button>
+
+<button onclick="startVoice()">🎤</button>
+
+</div>
+
+</div>
+
+<script>
+
+// ================= API KEYS =================
+
+const GROQ_API_KEY = "";
+
+const OPENROUTER_API_KEY = "";
+
+// ================= SMART MEMORY =================
+
+let memory = JSON.parse(localStorage.getItem("ultimate_memory")) || [];
+
+const profile = `
+User Profile:
+- Wants short practical answers
+- Before every command mention exact run location
+- Likes copy-paste-ready workflow
+- Focus: AI, SEO, CPA, APIs, Hosting, Kali Linux
+- Hates unnecessary theory
+- Uses Windows + Kali VM
+- Wants expert advisor behavior
+`;
+
+function saveMemory(){
+
+localStorage.setItem(
+"ultimate_memory",
+JSON.stringify(memory)
+);
+
+}
+
+function renderChat(){
+
+const chatbox = document.getElementById("chatbox");
+
+chatbox.innerHTML = "";
+
+memory.forEach(m => {
+
+const div = document.createElement("div");
+
+div.className = "msg " + m.role;
+
+div.innerText = m.text;
+
+chatbox.appendChild(div);
+
+});
+
+chatbox.scrollTop = chatbox.scrollHeight;
+
+}
+
+renderChat();
+
+// ================= MAIN AI =================
+
+async function askAI(){
+
+const input = document.getElementById("msg");
+
+const message = input.value;
+
+if(!message) return;
+
+addMessage("user", message);
+
+input.value = "";
+
+addMessage("ai", "Thinking...");
+
+const provider = document.getElementById("provider").value;
+
+const model = document.getElementById("model").value;
+
+let url = "";
+
+let key = "";
+
+let headers = {};
+
+if(provider === "groq"){
+
+url = "https://api.groq.com/openai/v1/chat/completions";
+
+key = GROQ_API_KEY;
+
+headers = {
+"Content-Type":"application/json",
+"Authorization":"Bearer " + key
+};
+
+}else{
+
+url = "https://openrouter.ai/api/v1/chat/completions";
+
+key = OPENROUTER_API_KEY;
+
+headers = {
+"Content-Type":"application/json",
+"Authorization":"Bearer " + key
+};
+
+}
+
+const response = await fetch(url,{
+
+method:"POST",
+
+headers:headers,
+
+body:JSON.stringify({
+
+model:model,
+
+messages:[
+
+{
+role:"system",
+content:`You are an elite AI supervisor and technical mentor. Always answer short, practical, intelligent, and direct. Never give generic tutorials. Before every command say exactly where to run it. Focus on AI tools, automation, APIs, SEO, coding, hosting, Linux, and monetization. Give copy-paste-ready answers only. ${profile}`
+},
+
+...memory.map(m => ({
+role:m.role === "user" ? "user" : "assistant",
+content:m.text
+})),
+
+{
+role:"user",
+content:message
+}
+
+]
+
+})
+
+});
+
+const data = await response.json();
+
+memory.pop();
+
+let reply = "No response";
+
+if(data.choices && data.choices[0]){
+
+reply = data.choices[0].message.content;
+
+}
+
+addMessage("ai", reply);
+
+}
+
+// ================= CHAT =================
+
+function addMessage(role,text){
+
+memory.push({role,text});
+
+saveMemory();
+
+renderChat();
+
+}
+
+function clearChat(){
+
+localStorage.removeItem("ultimate_memory");
+
+memory = [];
+
+renderChat();
+
+}
+
+// ================= THEME =================
+
+function toggleTheme(){
+
+document.body.classList.toggle("light");
+
+}
+
+// ================= VOICE =================
+
+function startVoice(){
+
+const recognition =
+new(window.SpeechRecognition ||
+window.webkitSpeechRecognition)();
+
+recognition.lang = "en-US";
+
+recognition.start();
+
+recognition.onresult = function(event){
+
+document.getElementById("msg").value =
+event.results[0][0].transcript;
+
+}
+
+}
+
+// ================= FILE SYSTEM =================
+
+const fileInput =
+document.getElementById("fileInput");
+
+fileInput.addEventListener("change",function(){
+
+const file = this.files[0];
+
+if(!file) return;
+
+addMessage(
+"ai",
+"File Loaded: " + file.name +
+"\n\nFuture advanced AI file analysis ready."
+);
+
+});
+
+// ================= WEB SEARCH =================
+
+function internetSearch(){
+
+window.open(
+"https://www.google.com/search?q=AI+Tools",
+"_blank"
+);
+
+}
+
+// ================= MULTI AGENTS =================
+
+const agents = {
+
+Coder:"Coding Expert",
+
+SEO:"SEO Expert",
+
+Security:"Kali Linux Expert",
+
+Automation:"Automation Expert",
+
+Business:"Monetization Expert"
+
+};
+
+// ================= CODE SANDBOX =================
+
+function runCode(code){
+
+console.log("Sandbox:",code);
+
+}
+
+// ================= AUTO WORKFLOW =================
+
+function autoWorkflow(task){
+
+console.log("Workflow:",task);
+
+}
+
+// ================= SMART PROMPT =================
+
+function optimizePrompt(text){
+
+return `Optimized: ${text}`;
+
+}
+
+</script>
+
+</body>
+</html>
