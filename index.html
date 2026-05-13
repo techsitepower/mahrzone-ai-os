@@ -1,126 +1,221 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mahrzone AI OS</title>
+
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-body{height:100vh;background:#0f172a;color:#fff;overflow:hidden}
-.app{height:100vh;width:100%;display:flex;justify-content:center;align-items:center;padding:16px}
-.panel{width:100%;max-width:980px;height:92vh;background:#1e293b;border-radius:22px;padding:18px;display:flex;flex-direction:column;box-shadow:0 0 35px rgba(0,0,0,.45)}
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-h1{font-size:28px}.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-select,button,input{border:0;border-radius:13px;font-size:15px}select{padding:12px;background:#334155;color:#fff}button{padding:12px 16px;background:#3b82f6;color:#fff;cursor:pointer}.green{background:#22c55e}.red{background:#ef4444}.purple{background:#8b5cf6}.status{background:#16a34a;padding:9px 14px;border-radius:999px;font-size:13px}
-.chatbox{flex:1;background:#334155;border-radius:18px;padding:16px;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth;min-height:0}
-.msg{padding:13px 14px;border-radius:14px;margin-bottom:12px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word;max-width:86%}.user{background:#2563eb;margin-left:auto}.ai{background:#475569;margin-right:auto}.typing{opacity:.8;font-style:italic}
-.inputbar{display:flex;gap:10px;margin-top:14px}input{flex:1;padding:15px;outline:0}.footer-actions{display:flex;gap:10px}
-@media(max-width:700px){.panel{height:95vh;padding:12px}h1{font-size:22px}.msg{max-width:100%}.inputbar{flex-direction:column}.footer-actions{display:flex}.footer-actions button{flex:1}}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{background:linear-gradient(135deg,#020617,#0f172a,#1e293b);color:white;height:100vh;overflow:hidden}
+.app{height:100vh;max-width:1150px;margin:auto;padding:18px;display:flex;flex-direction:column}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.title{font-size:38px;font-weight:bold}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select,button,input{border:none;border-radius:13px;font-size:15px}
+select{padding:12px;background:#1e293b;color:white}
+button{padding:13px 17px;color:white;cursor:pointer}
+.status{background:#16a34a;padding:10px 15px;border-radius:30px}
+.chatbox{flex:1;background:#334155;border-radius:20px;padding:18px;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth}
+.msg{padding:14px;border-radius:15px;margin-bottom:13px;line-height:1.6;white-space:pre-wrap}
+.user{background:#2563eb;margin-left:14%}
+.ai{background:#475569;margin-right:14%}
+.inputbar{display:flex;gap:10px;margin-top:14px}
+input{flex:1;padding:16px;outline:none}
+.send{background:#3b82f6}.copy{background:#8b5cf6}.clear{background:#ef4444}
+@media(max-width:768px){.title{font-size:27px}.user,.ai{margin-left:0;margin-right:0}.controls{width:100%}.inputbar{flex-wrap:wrap}}
 </style>
 </head>
+
 <body>
-<div class="app"><div class="panel">
-  <div class="top">
-    <h1>🚀 Ultimate AI OS</h1>
-    <div class="controls">
-      <select id="mode">
-        <option value="advisor">Advisor</option>
-        <option value="coding">Coding</option>
-        <option value="seo">SEO</option>
-        <option value="kali">Kali Lab</option>
-      </select>
-      <select id="model">
-        <option value="openai/gpt-oss-20b:free">GPT OSS 20B</option>
-        <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B</option>
-        <option value="google/gemma-2-9b-it:free">Gemma 2</option>
-        <option value="mistralai/mistral-7b-instruct:free">Mistral 7B</option>
-      </select>
-      <span class="status">Online</span>
-    </div>
+
+<div class="app">
+
+<div class="topbar">
+  <div class="title">Ultimate AI OS</div>
+
+  <div class="controls">
+    <select id="provider" onchange="updateModels()">
+      <option value="openrouter">OpenRouter</option>
+      <option value="groq">Groq Cloud</option>
+    </select>
+
+    <select id="model"></select>
+
+    <div class="status">Online</div>
+
+    <button class="clear" onclick="clearChat()">Clear</button>
   </div>
-  <div id="chatbox" class="chatbox"></div>
-  <div class="inputbar">
-    <input id="msg" placeholder="Ask anything..." />
-    <div class="footer-actions">
-      <button onclick="askAI()">Send</button>
-      <button class="green" onclick="voiceInput()">🎤</button>
-      <button class="purple" onclick="copyLast()">Copy</button>
-      <button class="red" onclick="clearChat()">Clear</button>
-    </div>
-  </div>
-</div></div>
+</div>
+
+<div class="chatbox" id="chatbox"></div>
+
+<div class="inputbar">
+  <input id="msg" placeholder="Ask anything..." onkeydown="if(event.key==='Enter') askAI()">
+  <button class="send" onclick="askAI()">Send</button>
+  <button class="copy" onclick="copyLast()">Copy</button>
+</div>
+
+</div>
+
 <script>
-const chatbox = document.getElementById("chatbox");
-const input = document.getElementById("msg");
-const modelSelect = document.getElementById("model");
-const modeSelect = document.getElementById("mode");
-let memory = JSON.parse(localStorage.getItem("mahrzone_memory_v2")) || [];
-const prompts = {
-  advisor: "You are my elite personal AI supervisor. Answer short, practical and direct.",
-  coding: "You are my coding assistant. Give exact file location, exact code and no extra theory.",
-  seo: "You are my SEO and CPA growth strategist. Focus on traffic, ranking and monetization.",
-  kali: "You are my safe Kali Linux lab assistant. Only guide legal defensive learning and troubleshooting."
+const models = {
+  openrouter: [
+    ["openai/gpt-oss-20b:free","GPT OSS 20B Free"],
+    ["meta-llama/llama-3.3-70b-instruct:free","Llama 3.3 70B Free"],
+    ["google/gemma-2-9b-it:free","Gemma 2 9B Free"],
+    ["mistralai/mistral-7b-instruct:free","Mistral 7B Free"],
+    ["qwen/qwen-2.5-coder-32b-instruct:free","Qwen Coder Free"],
+    ["deepseek/deepseek-r1:free","DeepSeek R1 Free"]
+  ],
+  groq: [
+    ["llama-3.3-70b-versatile","Llama 3.3 70B Versatile"],
+    ["llama3-8b-8192","Llama 3 8B Fast"],
+    ["mixtral-8x7b-32768","Mixtral 8x7B"]
+  ]
 };
-const userProfile = "Before any command, say exactly where to run it. Focus on AI tools, API, Cloudflare, SEO, CPA, hosting, automation, Windows and Kali Linux. Avoid long theory.";
-function save(){localStorage.setItem("mahrzone_memory_v2", JSON.stringify(memory));}
-function scrollBottom(){setTimeout(()=>{chatbox.scrollTop = chatbox.scrollHeight;},30);}
-function render(){
-  chatbox.innerHTML = "";
-  memory.forEach(item=>{
-    const div = document.createElement("div");
-    div.className = "msg " + item.role;
-    div.textContent = item.text;
-    chatbox.appendChild(div);
+
+let memory = JSON.parse(localStorage.getItem("mahrzone_memory")) || [];
+
+function updateModels(){
+  const provider = document.getElementById("provider").value;
+  const modelSelect = document.getElementById("model");
+  modelSelect.innerHTML = "";
+
+  models[provider].forEach(m=>{
+    const option = document.createElement("option");
+    option.value = m[0];
+    option.textContent = m[1];
+    modelSelect.appendChild(option);
   });
-  scrollBottom();
 }
-function addMessage(role,text){memory.push({role,text});save();render();}
-function clearChat(){memory=[];save();render();}
+
+updateModels();
+
+function saveData(){
+  localStorage.setItem("mahrzone_memory", JSON.stringify(memory));
+}
+
+function render(){
+  const box = document.getElementById("chatbox");
+  box.innerHTML = "";
+
+  memory.forEach(m=>{
+    const div = document.createElement("div");
+    div.className = "msg " + m.role;
+    div.innerText = m.text;
+    box.appendChild(div);
+  });
+
+  setTimeout(()=>{
+    box.scrollTop = box.scrollHeight;
+  },50);
+}
+
+render();
+
+function addMessage(role,text){
+  memory.push({role,text});
+  saveData();
+  render();
+}
+
+function clearChat(){
+  memory = [];
+  saveData();
+  render();
+}
+
 async function askAI(){
+  const input = document.getElementById("msg");
   const message = input.value.trim();
+
   if(!message) return;
+
+  const provider = document.getElementById("provider").value;
+  const model = document.getElementById("model").value;
+
   addMessage("user", message);
   input.value = "";
-  addMessage("ai", "Thinking...");
+
+  memory.push({role:"ai",text:"Thinking..."});
+  render();
+
   try{
-    const cleanMemory = memory.filter(m=>m.text !== "Thinking...").slice(-12).map(m=>({role:m.role === "user" ? "user" : "assistant", content:m.text}));
     const response = await fetch("/api/chat",{
       method:"POST",
-      headers:{"Content-Type":"application/json"},
+      headers:{
+        "Content-Type":"application/json"
+      },
       body:JSON.stringify({
-        model:modelSelect.value,
+        provider,
+        model,
         messages:[
-          {role:"system", content:prompts[modeSelect.value] + " " + userProfile},
-          ...cleanMemory,
-          {role:"user", content:message}
+          {
+            role:"system",
+            content:"You are an expert personal AI supervisor. Answer short, practical and direct. Before giving any command, say exactly where to run it."
+          },
+          ...memory
+          .filter(m=>m.text !== "Thinking...")
+          .slice(-10)
+          .map(m=>({
+            role:m.role === "user" ? "user" : "assistant",
+            content:m.text
+          })),
+          {
+            role:"user",
+            content:message
+          }
         ]
       })
     });
+
     const data = await response.json();
+
     memory.pop();
+
     let reply = "No response";
-    if(data.choices && data.choices[0] && data.choices[0].message){reply = data.choices[0].message.content;}
-    if(data.error){reply = "API Error: " + (data.error.message || JSON.stringify(data.error));}
-    addMessage("ai", reply);
-  }catch(err){
+
+    if(data.choices && data.choices[0]){
+      reply = data.choices[0].message.content;
+    }
+
+    if(data.error){
+      reply = "API Error: " + data.error.message;
+    }
+
+    await streamReply(reply);
+
+  }catch(error){
     memory.pop();
-    addMessage("ai", "Connection error: " + err.message);
+    addMessage("ai","Connection error.");
   }
 }
+
+async function streamReply(text){
+  let current = "";
+
+  memory.push({role:"ai",text:""});
+
+  for(let i=0;i<text.length;i++){
+    current += text[i];
+    memory[memory.length-1].text = current;
+    render();
+    await new Promise(r=>setTimeout(r,2));
+  }
+
+  saveData();
+}
+
 function copyLast(){
   const last = [...memory].reverse().find(m=>m.role === "ai");
-  if(last){navigator.clipboard.writeText(last.text);alert("Copied");}
+
+  if(last){
+    navigator.clipboard.writeText(last.text);
+    alert("Copied");
+  }
 }
-function voiceInput(){
-  const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!Speech){alert("Voice not supported");return;}
-  const recognition = new Speech();
-  recognition.lang = "en-US";
-  recognition.start();
-  recognition.onresult = e=>{input.value = e.results[0][0].transcript;};
-}
-input.addEventListener("keydown", e=>{if(e.key === "Enter") askAI();});
-render();
 </script>
+
 </body>
 </html>
