@@ -2,38 +2,65 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    if (url.pathname === "/api/chat") {
-      if (request.method !== "POST") {
-        return Response.json({ error: "POST only" }, { status: 405 });
-      }
+    if (url.pathname !== "/api/chat") {
+      return env.ASSETS.fetch(request);
+    }
 
+    if (request.method !== "POST") {
+      return Response.json({ error: "POST only" }, { status: 405 });
+    }
+
+    try {
       const body = await request.json();
 
-      const model = body.model || "openai/gpt-oss-20b:free";
+      const provider = body.provider || "openrouter";
+      const messages = body.messages || [];
 
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      let apiUrl = "";
+      let apiKey = "";
+      let model = body.model || "";
+
+      if (provider === "groq") {
+        apiUrl = "https://api.groq.com/openai/v1/chat/completions";
+        apiKey = env.GROQ_API_KEY;
+        model = model || "llama-3.3-70b-versatile";
+      } else {
+        apiUrl = "https://openrouter.ai/api/v1/chat/completions";
+        apiKey = env.OPENROUTER_API_KEY;
+        model = model || "openai/gpt-oss-20b:free";
+      }
+
+      if (!apiKey) {
+        return Response.json({
+          error: {
+            message: provider.toUpperCase() + " API key missing in Cloudflare secrets"
+          }
+        });
+      }
+
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer " + env.OPENROUTER_API_KEY,
+          "Authorization": "Bearer " + apiKey,
           "HTTP-Referer": "https://mahrzone-worker.techsitepower.workers.dev",
           "X-Title": "Mahrzone AI OS"
         },
         body: JSON.stringify({
-          model: model,
-          messages: body.messages
+          model,
+          messages
         })
       });
 
       const data = await response.json();
 
-      return Response.json(data, {
-        headers: {
-          "Access-Control-Allow-Origin": "*"
+      return Response.json(data);
+    } catch (err) {
+      return Response.json({
+        error: {
+          message: err.message
         }
       });
     }
-
-    return env.ASSETS.fetch(request);
   }
 };
