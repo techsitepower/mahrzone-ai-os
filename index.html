@@ -45,17 +45,21 @@ code{font-family:monospace}
 
 <div class="right">
 
-<select id="model">
-<option value="llama-3.3-70b-versatile">
-Llama 3.3 70B
+<select id="provider" onchange="updateModels()">
+
+<option value="groq">
+Groq
 </option>
 
-<option value="llama-3.1-8b-instant">
-Llama 3.1 8B Instant
+<option value="openrouter">
+OpenRouter
 </option>
+
 </select>
 
-<div class="status">Groq Online</div>
+<select id="model"></select>
+
+<div class="status">AI Online</div>
 
 </div>
 </div>
