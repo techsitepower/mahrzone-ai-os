@@ -3,16 +3,24 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/api/chat") {
+      if (request.method !== "POST") {
+        return Response.json({ error: "POST only" }, { status: 405 });
+      }
+
       const body = await request.json();
+
+      const model = body.model || "openai/gpt-oss-20b:free";
 
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer " + env.OPENROUTER_API_KEY
+          "Authorization": "Bearer " + env.OPENROUTER_API_KEY,
+          "HTTP-Referer": "https://mahrzone-worker.techsitepower.workers.dev",
+          "X-Title": "Mahrzone AI OS"
         },
         body: JSON.stringify({
-          model: "openai/gpt-oss-20b:free",
+          model: model,
           messages: body.messages
         })
       });
@@ -28,4 +36,4 @@ export default {
 
     return env.ASSETS.fetch(request);
   }
-}
+};
