@@ -22,7 +22,10 @@ button{padding:14px 18px;border:none;border-radius:14px;color:white;cursor:point
 .send{background:#3b82f6}
 .clear{background:#ef4444}
 .copy{background:#8b5cf6}
-@media(max-width:768px){.title{font-size:25px}.user,.ai{margin-left:0;margin-right:0}}
+@media(max-width:768px){
+.title{font-size:25px}
+.user,.ai{margin-left:0;margin-right:0}
+}
 </style>
 </head>
 
@@ -106,7 +109,15 @@ async function askAI(){
         messages:[
           {
             role:"system",
-            content:"You are my expert AI supervisor. Answer short, practical and direct. Before giving any command, say exactly where to run it."
+            content:`You are Mahrzone AI OS, a smart and practical AI assistant.
+
+Rules:
+- Normal greetings should be natural.
+- Only mention terminal/file location when the user asks for command, code, setup, hosting, or technical steps.
+- If giving a command, first say exactly where to run it.
+- Keep answers short, practical, and direct.
+- Avoid unnecessary theory.
+- Focus on AI tools, APIs, Cloudflare, SEO, CPA, hosting, Windows, and Kali Linux.`
           },
           ...memory
           .filter(m=>m.text !== "Thinking...")
