@@ -264,8 +264,6 @@ let headers = {};
 
 if(provider === "groq"){
 
-url = "https://api.groq.com/openai/v1/chat/completions";
-
 key = GROQ_API_KEY;
 
 headers = {
@@ -274,8 +272,6 @@ headers = {
 };
 
 }else{
-
-url = "https://openrouter.ai/api/v1/chat/completions";
 
 key = OPENROUTER_API_KEY;
 
