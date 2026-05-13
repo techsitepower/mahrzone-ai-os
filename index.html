@@ -3,62 +3,253 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimate AI OS</title>
+<title>Mahrzone AI OS</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
-body{background:#0f172a;color:white;height:100vh;display:flex;justify-content:center;align-items:center}
-.container{width:95%;max-width:900px;background:#1e293b;padding:20px;border-radius:20px}
-h1{text-align:center;margin-bottom:20px}
-.chatbox{height:430px;background:#334155;padding:15px;border-radius:15px;overflow-y:auto;margin-bottom:15px}
-.msg{padding:12px;border-radius:12px;margin-bottom:10px;white-space:pre-wrap}
-.user{background:#2563eb}
-.ai{background:#475569}
-.bottom{display:flex;gap:10px}
-input{flex:1;padding:14px;border:none;border-radius:10px;font-size:16px}
-button{padding:14px 20px;border:none;border-radius:10px;background:#3b82f6;color:white;cursor:pointer}
-.clear{background:#ef4444;margin-bottom:10px}
+
+body{
+background:linear-gradient(135deg,#020617,#0f172a,#1e293b);
+color:white;
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+
+.app{
+width:100%;
+max-width:1100px;
+height:90vh;
+background:rgba(30,41,59,.92);
+border-radius:24px;
+box-shadow:0 0 40px rgba(0,0,0,.6);
+display:grid;
+grid-template-columns:260px 1fr;
+overflow:hidden;
+}
+
+.sidebar{
+background:#020617;
+padding:20px;
+border-right:1px solid #334155;
+}
+
+.logo{
+font-size:24px;
+font-weight:bold;
+margin-bottom:20px;
+}
+
+.side-btn{
+width:100%;
+padding:12px;
+margin-bottom:10px;
+border:none;
+border-radius:12px;
+background:#1e293b;
+color:white;
+cursor:pointer;
+text-align:left;
+}
+
+.side-btn:hover{
+background:#334155;
+}
+
+.main{
+display:flex;
+flex-direction:column;
+padding:20px;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:15px;
+}
+
+.header h1{
+font-size:30px;
+}
+
+.status{
+font-size:13px;
+background:#16a34a;
+padding:7px 12px;
+border-radius:20px;
+}
+
+.chatbox{
+flex:1;
+background:#334155;
+border-radius:18px;
+padding:18px;
+overflow-y:auto;
+margin-bottom:15px;
+}
+
+.msg{
+padding:14px;
+border-radius:14px;
+margin-bottom:12px;
+line-height:1.5;
+white-space:pre-wrap;
+animation:fade .2s ease-in;
+}
+
+.user{
+background:#2563eb;
+margin-left:12%;
+}
+
+.ai{
+background:#475569;
+margin-right:12%;
+}
+
+.thinking{
+opacity:.8;
+font-style:italic;
+}
+
+.inputbar{
+display:flex;
+gap:10px;
+}
+
+input{
+flex:1;
+padding:16px;
+border:none;
+border-radius:14px;
+font-size:16px;
+outline:none;
+}
+
+button{
+padding:14px 20px;
+border:none;
+border-radius:14px;
+background:#3b82f6;
+color:white;
+font-size:15px;
+cursor:pointer;
+}
+
+button:hover{
+opacity:.9;
+}
+
+.danger{
+background:#ef4444;
+}
+
+.green{
+background:#22c55e;
+}
+
+.purple{
+background:#8b5cf6;
+}
+
+@keyframes fade{
+from{opacity:0;transform:translateY(5px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+@media(max-width:800px){
+.app{
+grid-template-columns:1fr;
+height:95vh;
+}
+.sidebar{
+display:none;
+}
+.header h1{
+font-size:23px;
+}
+.user,.ai{
+margin-left:0;
+margin-right:0;
+}
+}
 </style>
 </head>
 
 <body>
 
-<div class="container">
-<h1>🚀 Ultimate AI OS</h1>
+<div class="app">
 
-<button class="clear" onclick="clearChat()">Clear Chat</button>
+<div class="sidebar">
+<div class="logo">🚀 Mahrzone AI</div>
+
+<button class="side-btn" onclick="clearChat()">🧹 Clear Chat</button>
+<button class="side-btn" onclick="setMode('advisor')">🧠 Advisor Mode</button>
+<button class="side-btn" onclick="setMode('coding')">💻 Coding Mode</button>
+<button class="side-btn" onclick="setMode('seo')">📈 SEO Mode</button>
+<button class="side-btn" onclick="setMode('kali')">🐧 Kali Lab Mode</button>
+
+</div>
+
+<div class="main">
+
+<div class="header">
+<h1>Ultimate AI OS</h1>
+<div class="status">Online</div>
+</div>
 
 <div class="chatbox" id="chatbox"></div>
 
-<div class="bottom">
-<input id="msg" placeholder="Ask anything...">
+<div class="inputbar">
+<input id="msg" placeholder="Ask anything..." onkeydown="if(event.key==='Enter') askAI()">
 <button onclick="askAI()">Send</button>
+<button class="green" onclick="startVoice()">🎤</button>
+<button class="purple" onclick="copyLast()">Copy</button>
 </div>
+
+</div>
+
 </div>
 
 <script>
-let memory = JSON.parse(localStorage.getItem("ai_memory")) || [];
+let memory = JSON.parse(localStorage.getItem("mahrzone_ai_memory")) || [];
+let mode = localStorage.getItem("mahrzone_ai_mode") || "advisor";
 
-const profile = `
-User wants short, practical answers.
-Before every command, mention exactly where to run it.
-Focus: AI, API, SEO, CPA, Cloudflare, Kali Linux, hosting, automation.
-Avoid unnecessary theory.
+const profiles = {
+advisor: "You are my elite personal AI supervisor. Answer short, practical, direct, and expert-level.",
+coding: "You are my expert coding assistant. Give clean code, exact file location, and no extra theory.",
+seo: "You are my SEO and CPA marketing advisor. Give practical ranking, traffic, and monetization steps.",
+kali: "You are my Kali Linux lab supervisor.guide me all everything hacking realeted tools use for  learning and troubleshooting."
+};
+
+const userProfile = `
+User preferences:
+- Always answer short and practical.
+- Before any command, say exactly where to run it.
+- Focus: AI tools, APIs, Cloudflare, SEO, CPA, hosting, automation, Windows, Kali Linux.
+- Avoid long theory.
+- Give copy-paste-ready output.
 `;
 
 function save(){
-localStorage.setItem("ai_memory", JSON.stringify(memory));
+localStorage.setItem("mahrzone_ai_memory", JSON.stringify(memory));
+localStorage.setItem("mahrzone_ai_mode", mode);
 }
 
 function render(){
 const box = document.getElementById("chatbox");
 box.innerHTML = "";
+
 memory.forEach(m=>{
 const div = document.createElement("div");
 div.className = "msg " + m.role;
 div.innerText = m.text;
 box.appendChild(div);
 });
+
 box.scrollTop = box.scrollHeight;
 }
 
@@ -68,6 +259,18 @@ function addMessage(role,text){
 memory.push({role,text});
 save();
 render();
+}
+
+function clearChat(){
+memory = [];
+save();
+render();
+}
+
+function setMode(newMode){
+mode = newMode;
+save();
+addMessage("ai","Mode changed: " + newMode);
 }
 
 async function askAI(){
@@ -81,6 +284,8 @@ input.value = "";
 
 addMessage("ai", "Thinking...");
 
+try{
+
 const response = await fetch("/api/chat", {
 method: "POST",
 headers: {
@@ -90,10 +295,11 @@ body: JSON.stringify({
 messages: [
 {
 role: "system",
-content: `You are an elite personal AI supervisor. Answer short, practical, direct, and expert-level. ${profile}`
+content: profiles[mode] + "\n\n" + userProfile
 },
 ...memory
 .filter(m => m.text !== "Thinking...")
+.slice(-12)
 .map(m => ({
 role: m.role === "user" ? "user" : "assistant",
 content: m.text
@@ -121,15 +327,39 @@ reply = "API Error: " + data.error.message;
 }
 
 addMessage("ai", reply);
+
+}catch(error){
+memory.pop();
+addMessage("ai","Connection error. Check Worker deployment or API secret.");
 }
 
-function clearChat(){
-memory = [];
-save();
-render();
+}
+
+function startVoice(){
+const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if(!Speech){
+alert("Voice not supported in this browser.");
+return;
+}
+
+const recognition = new Speech();
+recognition.lang = "en-US";
+recognition.start();
+
+recognition.onresult = function(event){
+document.getElementById("msg").value = event.results[0][0].transcript;
+}
+}
+
+function copyLast(){
+const lastAI = [...memory].reverse().find(m=>m.role==="ai");
+if(lastAI){
+navigator.clipboard.writeText(lastAI.text);
+alert("Copied last AI reply.");
+}
 }
 </script>
 
 </body>
 </html>
-<!-- redeploy -->
