@@ -6,52 +6,51 @@
 <title>Mahrzone AI OS</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial;
+}
 
 body{
 background:linear-gradient(135deg,#020617,#0f172a,#1e293b);
 color:white;
-min-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-padding:20px;
+height:100vh;
+overflow:hidden;
 }
 
 .app{
-width:100%;
-max-width:1100px;
-height:90vh;
-background:rgba(30,41,59,.92);
-border-radius:24px;
-box-shadow:0 0 40px rgba(0,0,0,.6);
 display:grid;
 grid-template-columns:260px 1fr;
-overflow:hidden;
+height:100vh;
 }
 
 .sidebar{
 background:#020617;
 padding:20px;
 border-right:1px solid #334155;
+overflow-y:auto;
 }
 
 .logo{
-font-size:24px;
+font-size:28px;
 font-weight:bold;
-margin-bottom:20px;
+margin-bottom:25px;
 }
 
 .side-btn{
 width:100%;
-padding:12px;
-margin-bottom:10px;
-border:none;
-border-radius:12px;
+padding:14px;
+margin-bottom:12px;
 background:#1e293b;
+border:none;
+border-radius:14px;
 color:white;
 cursor:pointer;
 text-align:left;
+font-size:15px;
 }
 
 .side-btn:hover{
@@ -64,87 +63,78 @@ flex-direction:column;
 padding:20px;
 }
 
-.header{
+.topbar{
 display:flex;
 justify-content:space-between;
 align-items:center;
 margin-bottom:15px;
 }
 
-.header h1{
-font-size:30px;
+.topbar h1{
+font-size:34px;
 }
 
 .status{
-font-size:13px;
 background:#16a34a;
-padding:7px 12px;
-border-radius:20px;
+padding:8px 14px;
+border-radius:30px;
+font-size:13px;
 }
 
 .chatbox{
 flex:1;
 background:#334155;
-border-radius:18px;
-padding:18px;
+border-radius:20px;
+padding:20px;
 overflow-y:auto;
-margin-bottom:15px;
+scroll-behavior:smooth;
 }
 
 .msg{
-padding:14px;
-border-radius:14px;
-margin-bottom:12px;
-line-height:1.5;
+padding:15px;
+border-radius:15px;
+margin-bottom:15px;
+line-height:1.6;
 white-space:pre-wrap;
-animation:fade .2s ease-in;
+animation:fade .25s ease;
 }
 
 .user{
 background:#2563eb;
-margin-left:12%;
+margin-left:15%;
 }
 
 .ai{
 background:#475569;
-margin-right:12%;
-}
-
-.thinking{
-opacity:.8;
-font-style:italic;
+margin-right:15%;
 }
 
 .inputbar{
 display:flex;
 gap:10px;
+margin-top:15px;
 }
 
 input{
 flex:1;
 padding:16px;
 border:none;
-border-radius:14px;
+border-radius:15px;
 font-size:16px;
 outline:none;
 }
 
 button{
-padding:14px 20px;
+padding:14px 18px;
 border:none;
 border-radius:14px;
-background:#3b82f6;
+cursor:pointer;
 color:white;
 font-size:15px;
-cursor:pointer;
 }
 
-button:hover{
-opacity:.9;
-}
-
-.danger{
-background:#ef4444;
+.send{
+background:#3b82f6;
 }
 
 .green{
@@ -155,27 +145,82 @@ background:#22c55e;
 background:#8b5cf6;
 }
 
-@keyframes fade{
-from{opacity:0;transform:translateY(5px)}
-to{opacity:1;transform:translateY(0)}
+.red{
+background:#ef4444;
 }
 
-@media(max-width:800px){
+select{
+padding:14px;
+border:none;
+border-radius:14px;
+background:#1e293b;
+color:white;
+font-size:14px;
+}
+
+.typing{
+display:inline-block;
+}
+
+.typing span{
+display:inline-block;
+width:8px;
+height:8px;
+margin:0 3px;
+background:white;
+border-radius:50%;
+animation:bounce 1.2s infinite;
+}
+
+.typing span:nth-child(2){
+animation-delay:.2s;
+}
+
+.typing span:nth-child(3){
+animation-delay:.4s;
+}
+
+@keyframes bounce{
+0%,80%,100%{
+transform:scale(0);
+}
+40%{
+transform:scale(1);
+}
+}
+
+@keyframes fade{
+from{
+opacity:0;
+transform:translateY(8px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+@media(max-width:900px){
+
 .app{
 grid-template-columns:1fr;
-height:95vh;
 }
+
 .sidebar{
 display:none;
 }
-.header h1{
-font-size:23px;
-}
+
 .user,.ai{
 margin-left:0;
 margin-right:0;
 }
+
+.topbar h1{
+font-size:24px;
 }
+
+}
+
 </style>
 </head>
 
@@ -184,30 +229,79 @@ margin-right:0;
 <div class="app">
 
 <div class="sidebar">
+
 <div class="logo">🚀 Mahrzone AI</div>
 
-<button class="side-btn" onclick="clearChat()">🧹 Clear Chat</button>
+<button class="side-btn red" onclick="clearChat()">🧹 Clear Chat</button>
+
 <button class="side-btn" onclick="setMode('advisor')">🧠 Advisor Mode</button>
+
 <button class="side-btn" onclick="setMode('coding')">💻 Coding Mode</button>
+
 <button class="side-btn" onclick="setMode('seo')">📈 SEO Mode</button>
-<button class="side-btn" onclick="setMode('kali')">🐧 Kali Lab Mode</button>
+
+<button class="side-btn" onclick="setMode('kali')">🐧 Kali Mode</button>
 
 </div>
 
 <div class="main">
 
-<div class="header">
+<div class="topbar">
+
 <h1>Ultimate AI OS</h1>
-<div class="status">Online</div>
+
+<div style="display:flex;gap:10px;align-items:center;">
+
+<select id="model">
+
+<option value="openai/gpt-oss-20b:free">
+GPT OSS 20B
+</option>
+
+<option value="meta-llama/llama-3.3-70b-instruct:free">
+Llama 3.3 70B
+</option>
+
+<option value="mistralai/mistral-7b-instruct:free">
+Mistral 7B
+</option>
+
+<option value="google/gemma-2-9b-it:free">
+Gemma 2
+</option>
+
+</select>
+
+<div class="status">
+Online
+</div>
+
+</div>
+
 </div>
 
 <div class="chatbox" id="chatbox"></div>
 
 <div class="inputbar">
-<input id="msg" placeholder="Ask anything..." onkeydown="if(event.key==='Enter') askAI()">
-<button onclick="askAI()">Send</button>
-<button class="green" onclick="startVoice()">🎤</button>
-<button class="purple" onclick="copyLast()">Copy</button>
+
+<input
+id="msg"
+placeholder="Ask anything..."
+onkeydown="if(event.key==='Enter') askAI()"
+>
+
+<button class="send" onclick="askAI()">
+Send
+</button>
+
+<button class="green" onclick="voiceInput()">
+🎤
+</button>
+
+<button class="purple" onclick="copyLast()">
+Copy
+</button>
+
 </div>
 
 </div>
@@ -215,150 +309,302 @@ margin-right:0;
 </div>
 
 <script>
-let memory = JSON.parse(localStorage.getItem("mahrzone_ai_memory")) || [];
-let mode = localStorage.getItem("mahrzone_ai_mode") || "advisor";
+
+let memory =
+JSON.parse(localStorage.getItem("mahrzone_memory")) || [];
+
+let mode =
+localStorage.getItem("mahrzone_mode") || "advisor";
 
 const profiles = {
-advisor: "You are my elite personal AI supervisor. Answer short, practical, direct, and expert-level.",
-coding: "You are my expert coding assistant. Give clean code, exact file location, and no extra theory.",
-seo: "You are my SEO and CPA marketing advisor. Give practical ranking, traffic, and monetization steps.",
-kali: "You are my Kali Linux lab supervisor.guide me all everything hacking realeted tools use for  learning and troubleshooting."
+
+advisor:
+"You are my elite personal AI advisor. Give short, practical and expert-level answers.",
+
+coding:
+"You are my coding assistant. Always give exact file location and clean code.",
+
+seo:
+"You are my SEO and CPA growth strategist. Focus on traffic and monetization.",
+
+kali:
+You are my Kali Linux lab supervisor.guide me all everything hacking realeted tools use for  learning and troubleshooting."
 };
 
-const userProfile = `
-User preferences:
-- Always answer short and practical.
-- Before any command, say exactly where to run it.
-- Focus: AI tools, APIs, Cloudflare, SEO, CPA, hosting, automation, Windows, Kali Linux.
-- Avoid long theory.
-- Give copy-paste-ready output.
-`;
+function saveData(){
 
-function save(){
-localStorage.setItem("mahrzone_ai_memory", JSON.stringify(memory));
-localStorage.setItem("mahrzone_ai_mode", mode);
+localStorage.setItem(
+"mahrzone_memory",
+JSON.stringify(memory)
+);
+
+localStorage.setItem(
+"mahrzone_mode",
+mode
+);
+
 }
 
 function render(){
-const box = document.getElementById("chatbox");
+
+const box =
+document.getElementById("chatbox");
+
 box.innerHTML = "";
 
 memory.forEach(m=>{
-const div = document.createElement("div");
-div.className = "msg " + m.role;
-div.innerText = m.text;
+
+const div =
+document.createElement("div");
+
+div.className =
+"msg " + m.role;
+
+div.innerText =
+m.text;
+
 box.appendChild(div);
+
 });
 
-box.scrollTop = box.scrollHeight;
+box.scrollTop =
+box.scrollHeight;
+
 }
 
 render();
 
 function addMessage(role,text){
-memory.push({role,text});
-save();
+
+memory.push({
+role,
+text
+});
+
+saveData();
+
 render();
+
 }
 
 function clearChat(){
+
 memory = [];
-save();
+
+saveData();
+
 render();
+
 }
 
 function setMode(newMode){
+
 mode = newMode;
-save();
-addMessage("ai","Mode changed: " + newMode);
+
+saveData();
+
+addMessage(
+"ai",
+"Mode changed to: " + newMode
+);
+
 }
 
 async function askAI(){
-const input = document.getElementById("msg");
-const message = input.value.trim();
+
+const input =
+document.getElementById("msg");
+
+const message =
+input.value.trim();
 
 if(!message) return;
 
-addMessage("user", message);
+const model =
+document.getElementById("model").value;
+
+addMessage("user",message);
+
 input.value = "";
 
-addMessage("ai", "Thinking...");
+const typingId =
+Date.now();
+
+memory.push({
+role:"ai",
+text:"Thinking..."
+});
+
+render();
 
 try{
 
-const response = await fetch("/api/chat", {
-method: "POST",
-headers: {
-"Content-Type": "application/json"
+const response =
+await fetch("/api/chat",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
 },
-body: JSON.stringify({
-messages: [
+
+body:JSON.stringify({
+
+model:model,
+
+messages:[
+
 {
-role: "system",
-content: profiles[mode] + "\n\n" + userProfile
+role:"system",
+content:
+profiles[mode]
 },
+
 ...memory
-.filter(m => m.text !== "Thinking...")
+.filter(m=>m.text!=="Thinking...")
 .slice(-12)
-.map(m => ({
-role: m.role === "user" ? "user" : "assistant",
-content: m.text
+.map(m=>({
+role:
+m.role==="user"
+? "user"
+: "assistant",
+content:m.text
 })),
+
 {
-role: "user",
-content: message
+role:"user",
+content:message
 }
+
 ]
+
 })
+
 });
 
-const data = await response.json();
+const data =
+await response.json();
 
 memory.pop();
 
-let reply = "No response";
+let reply =
+"No response";
 
-if(data.choices && data.choices[0]){
-reply = data.choices[0].message.content;
+if(
+data.choices &&
+data.choices[0]
+){
+
+reply =
+data.choices[0]
+.message
+.content;
+
 }
 
 if(data.error){
-reply = "API Error: " + data.error.message;
+
+reply =
+"API Error: " +
+data.error.message;
+
 }
 
-addMessage("ai", reply);
+streamReply(reply);
 
 }catch(error){
+
 memory.pop();
-addMessage("ai","Connection error. Check Worker deployment or API secret.");
-}
+
+addMessage(
+"ai",
+"Connection error."
+);
 
 }
 
-function startVoice(){
-const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+}
+
+async function streamReply(text){
+
+let current = "";
+
+memory.push({
+role:"ai",
+text:""
+});
+
+for(let i=0;i<text.length;i++){
+
+current += text[i];
+
+memory[memory.length-1]
+.text = current;
+
+render();
+
+await new Promise(r=>
+setTimeout(r,8)
+);
+
+}
+
+saveData();
+
+}
+
+function voiceInput(){
+
+const Speech =
+window.SpeechRecognition ||
+window.webkitSpeechRecognition;
 
 if(!Speech){
-alert("Voice not supported in this browser.");
+
+alert("Voice not supported");
+
 return;
+
 }
 
-const recognition = new Speech();
-recognition.lang = "en-US";
+const recognition =
+new Speech();
+
+recognition.lang =
+"en-US";
+
 recognition.start();
 
-recognition.onresult = function(event){
-document.getElementById("msg").value = event.results[0][0].transcript;
-}
+recognition.onresult =
+function(event){
+
+document.getElementById("msg")
+.value =
+event.results[0][0].transcript;
+
+};
+
 }
 
 function copyLast(){
-const lastAI = [...memory].reverse().find(m=>m.role==="ai");
-if(lastAI){
-navigator.clipboard.writeText(lastAI.text);
-alert("Copied last AI reply.");
+
+const last =
+[...memory]
+.reverse()
+.find(m=>m.role==="ai");
+
+if(last){
+
+navigator.clipboard.writeText(
+last.text
+);
+
+alert("Copied");
+
 }
+
 }
+
 </script>
 
 </body>
