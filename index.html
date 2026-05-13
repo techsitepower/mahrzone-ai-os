@@ -88,6 +88,7 @@ background:#334155;
 border-radius:20px;
 padding:20px;
 overflow-y:auto;
+overflow-x:hidden;
 scroll-behavior:smooth;
 }
 
@@ -367,6 +368,12 @@ m.text;
 box.appendChild(div);
 
 });
+
+setTimeout(()=>{
+box.scrollTop = box.scrollHeight;
+},50);
+
+}
 
 box.scrollTop =
 box.scrollHeight;
