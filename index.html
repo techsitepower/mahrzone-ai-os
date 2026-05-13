@@ -1,219 +1,61 @@
 <!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mahrzone AI OS</title>
+}
+]
+})
+});
 
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
-body{background:linear-gradient(135deg,#020617,#0f172a,#1e293b);color:white;height:100vh;overflow:hidden}
-.app{height:100vh;max-width:1150px;margin:auto;padding:18px;display:flex;flex-direction:column}
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.title{font-size:38px;font-weight:bold}
-.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-select,button,input{border:none;border-radius:13px;font-size:15px}
-select{padding:12px;background:#1e293b;color:white}
-button{padding:13px 17px;color:white;cursor:pointer}
-.status{background:#16a34a;padding:10px 15px;border-radius:30px}
-.chatbox{flex:1;background:#334155;border-radius:20px;padding:18px;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth}
-.msg{padding:14px;border-radius:15px;margin-bottom:13px;line-height:1.6;white-space:pre-wrap}
-.user{background:#2563eb;margin-left:14%}
-.ai{background:#475569;margin-right:14%}
-.inputbar{display:flex;gap:10px;margin-top:14px}
-input{flex:1;padding:16px;outline:none}
-.send{background:#3b82f6}.copy{background:#8b5cf6}.clear{background:#ef4444}
-@media(max-width:768px){.title{font-size:27px}.user,.ai{margin-left:0;margin-right:0}.controls{width:100%}.inputbar{flex-wrap:wrap}}
-</style>
-</head>
+const data = await response.json();
 
-<body>
+memory.pop();
 
-<div class="app">
+let reply = "No response";
 
-<div class="topbar">
-  <div class="title">Ultimate AI OS</div>
-
-  <div class="controls">
-    <select id="provider" onchange="updateModels()">
-      <option value="openrouter">OpenRouter</option>
-      <option value="groq">Groq Cloud</option>
-    </select>
-
-    <select id="model"></select>
-
-    <div class="status">Online</div>
-
-    <button class="clear" onclick="clearChat()">Clear</button>
-  </div>
-</div>
-
-<div class="chatbox" id="chatbox"></div>
-
-<div class="inputbar">
-  <input id="msg" placeholder="Ask anything..." onkeydown="if(event.key==='Enter') askAI()">
-  <button class="send" onclick="askAI()">Send</button>
-  <button class="copy" onclick="copyLast()">Copy</button>
-</div>
-
-</div>
-
-<script>
-const models = {
-  openrouter: [
-    ["openai/gpt-oss-20b:free","GPT OSS 20B Free"],
-    ["meta-llama/llama-3.3-70b-instruct:free","Llama 3.3 70B Free"],
-    ["google/gemma-2-9b-it:free","Gemma 2 9B Free"],
-    ["mistralai/mistral-7b-instruct:free","Mistral 7B Free"],
-    ["qwen/qwen-2.5-coder-32b-instruct:free","Qwen Coder Free"],
-    ["deepseek/deepseek-r1:free","DeepSeek R1 Free"]
-  ],
-  groq: [
-    ["llama-3.3-70b-versatile","Llama 3.3 70B Versatile"],
-    ["llama3-8b-8192","Llama 3 8B Fast"],
-    ["mixtral-8x7b-32768","Mixtral 8x7B"]
-  ]
-};
-
-let memory = JSON.parse(localStorage.getItem("mahrzone_memory")) || [];
-
-function updateModels(){
-  const provider = document.getElementById("provider").value;
-  const modelSelect = document.getElementById("model");
-  modelSelect.innerHTML = "";
-
-  models[provider].forEach(m=>{
-    const option = document.createElement("option");
-    option.value = m[0];
-    option.textContent = m[1];
-    modelSelect.appendChild(option);
-  });
+if(data.choices && data.choices[0]){
+reply = data.choices[0].message.content;
 }
 
-updateModels();
-
-function saveData(){
-  localStorage.setItem("mahrzone_memory", JSON.stringify(memory));
+if(data.error){
+reply = "API Error: " + data.error.message;
 }
 
-function render(){
-  const box = document.getElementById("chatbox");
-  box.innerHTML = "";
+await streamReply(reply);
 
-  memory.forEach(m=>{
-    const div = document.createElement("div");
-    div.className = "msg " + m.role;
-    div.innerText = m.text;
-    box.appendChild(div);
-  });
-
-  setTimeout(()=>{
-    box.scrollTop = box.scrollHeight;
-  },50);
+}catch(error){
+memory.pop();
+addMessage("ai","Connection error.");
 }
-
-render();
-
-function addMessage(role,text){
-  memory.push({role,text});
-  saveData();
-  render();
-}
-
-function clearChat(){
-  memory = [];
-  saveData();
-  render();
-}
-
-async function askAI(){
-  const input = document.getElementById("msg");
-  const message = input.value.trim();
-
-  if(!message) return;
-
-  const provider = document.getElementById("provider").value;
-  const model = document.getElementById("model").value;
-
-  addMessage("user", message);
-  input.value = "";
-
-  memory.push({role:"ai",text:"Thinking..."});
-  render();
-
-  try{
-    const response = await fetch("/api/chat",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        provider,
-        model,
-        messages:[
-          {
-            role:"system",
-            content:"You are an expert personal AI supervisor. Answer short, practical and direct. Before giving any command, say exactly where to run it."
-          },
-          ...memory
-          .filter(m=>m.text !== "Thinking...")
-          .slice(-10)
-          .map(m=>({
-            role:m.role === "user" ? "user" : "assistant",
-            content:m.text
-          })),
-          {
-            role:"user",
-            content:message
-          }
-        ]
-      })
-    });
-
-    const data = await response.json();
-
-    memory.pop();
-
-    let reply = "No response";
-
-    if(data.choices && data.choices[0]){
-      reply = data.choices[0].message.content;
-    }
-
-    if(data.error){
-      reply = "API Error: " + data.error.message;
-    }
-
-    await streamReply(reply);
-
-  }catch(error){
-    memory.pop();
-    addMessage("ai","Connection error.");
-  }
 }
 
 async function streamReply(text){
-  let current = "";
+let current = "";
 
-  memory.push({role:"ai",text:""});
+memory.push({
+role:"ai",
+text:""
+});
 
-  for(let i=0;i<text.length;i++){
-    current += text[i];
-    memory[memory.length-1].text = current;
-    render();
-    await new Promise(r=>setTimeout(r,2));
-  }
+for(let i=0;i<text.length;i++){
+current += text[i];
 
-  saveData();
+memory[memory.length-1].text = current;
+
+render();
+
+await new Promise(r=>setTimeout(r,2));
+}
+
+saveData();
 }
 
 function copyLast(){
-  const last = [...memory].reverse().find(m=>m.role === "ai");
+const last = [...memory]
+.reverse()
+.find(m=>m.role === "ai");
 
-  if(last){
-    navigator.clipboard.writeText(last.text);
-    alert("Copied");
-  }
+if(last){
+navigator.clipboard.writeText(last.text);
+alert("Copied");
+}
 }
 </script>
 
